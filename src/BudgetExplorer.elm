@@ -11,6 +11,16 @@ type BudgetDirection
     | Expense
 
 
+budgetDirectionToString : BudgetDirection -> String
+budgetDirectionToString budgetDirection =
+    case budgetDirection of
+        Income ->
+            "Income"
+
+        Expense ->
+            "Expense"
+
+
 type alias BudgetCategory =
     { name : String
     , amount : Float
@@ -34,6 +44,7 @@ initialModel =
         [ { name = "Mortgage", amount = 2000.0, direction = Expense }
         , { name = "Groceries", amount = 500.0, direction = Expense }
         , { name = "Utilities", amount = 250.0, direction = Expense }
+        , { name = "Paycheck", amount = 3500.0, direction = Income }
         ]
     }
 
@@ -48,8 +59,30 @@ view model =
         [ h1 [] [ text "Budget Explorer" ]
         , hBar (List.map budgetCategoryToTuple model.data)
             |> toHtml
-        , h2 [] [ text "Income Categories" ]
-        , h2 [] [ text "Expense Categories" ]
+        , htmlForDirection model.data Income
+        , htmlForDirection model.data Expense
+        ]
+
+
+htmlForDirection : List BudgetCategory -> BudgetDirection -> Html Msg
+htmlForDirection budgetCategories direction =
+    let
+        categoriesByDirection =
+            List.filter (\c -> c.direction == direction) budgetCategories
+
+        budgetDirectionStr =
+            budgetDirectionToString direction
+    in
+    div [ class budgetDirectionStr ] <|
+        [ h2 [] [ text <| budgetDirectionStr ++ " Categories" ] ]
+            ++ List.map htmlForCategory categoriesByDirection
+
+
+htmlForCategory : BudgetCategory -> Html Msg
+htmlForCategory budgetCategory =
+    span []
+        [ input [ value budgetCategory.name ] []
+        , input [ value <| String.fromFloat budgetCategory.amount ] []
         ]
 
 
