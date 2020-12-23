@@ -1,8 +1,9 @@
 module BudgetExplorer exposing (main)
 
 import Browser
-import Chart exposing (hBar, title, toHtml)
+import Chart exposing (hBar, toHtml)
 import Html exposing (..)
+import Html.Attributes exposing (..)
 
 
 type alias Model =
@@ -26,9 +27,12 @@ type Msg
 
 view : Model -> Html Msg
 view model =
-    hBar model.data
-        |> title "here we go"
-        |> toHtml
+    div [ class "content" ]
+        [ h1 [] [ text "Budget Explorer" ]
+        , hBar model.data
+            |> Chart.title "here we go"
+            |> toHtml
+        ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
