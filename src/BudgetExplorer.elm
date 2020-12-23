@@ -48,6 +48,8 @@ view model =
         [ h1 [] [ text "Budget Explorer" ]
         , hBar (List.map budgetCategoryToTuple model.data)
             |> toHtml
+        , h2 [] [ text "Income Categories" ]
+        , h2 [] [ text "Expense Categories" ]
         ]
 
 
