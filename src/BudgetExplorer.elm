@@ -6,9 +6,15 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 
 
+type BudgetDirection
+    = Income
+    | Expense
+
+
 type alias BudgetCategory =
     { name : String
     , amount : Float
+    , direction : BudgetDirection
     }
 
 
@@ -25,9 +31,9 @@ type alias Model =
 initialModel : Model
 initialModel =
     { data =
-        [ { name = "Mortgage", amount = 2000.0 }
-        , { name = "Groceries", amount = 500.0 }
-        , { name = "Utilities", amount = 250.0 }
+        [ { name = "Mortgage", amount = 2000.0, direction = Expense }
+        , { name = "Groceries", amount = 500.0, direction = Expense }
+        , { name = "Utilities", amount = 250.0, direction = Expense }
         ]
     }
 
