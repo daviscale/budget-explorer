@@ -6,31 +6,41 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 
 
+type alias BudgetCategory =
+    { name : String
+    , amount : Float
+    }
+
+
+budgetCategoryToTuple : BudgetCategory -> ( Float, String )
+budgetCategoryToTuple budgetCategory =
+    ( budgetCategory.amount, budgetCategory.name )
+
+
 type alias Model =
-    { data : List ( Float, String )
+    { data : List BudgetCategory
     }
 
 
 initialModel : Model
 initialModel =
     { data =
-        [ ( 1000.0, "Mortgage" )
-        , ( 500.0, "Groceries" )
-        , ( 250.0, "Utilities" )
+        [ { name = "Mortgage", amount = 2000.0 }
+        , { name = "Groceries", amount = 500.0 }
+        , { name = "Utilities", amount = 250.0 }
         ]
     }
 
 
 type Msg
-    = CategoryUpdated String Float
+    = CategoryUpdated BudgetCategory
 
 
 view : Model -> Html Msg
 view model =
     div [ class "content" ]
         [ h1 [] [ text "Budget Explorer" ]
-        , hBar model.data
-            |> Chart.title "here we go"
+        , hBar (List.map budgetCategoryToTuple model.data)
             |> toHtml
         ]
 
