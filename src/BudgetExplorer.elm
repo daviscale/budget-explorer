@@ -1,88 +1,84 @@
 module BudgetExplorer exposing (main)
 
+import Array exposing (Array)
 import Browser
-import Chart exposing (hBar, toHtml)
+import Chart exposing (hBar, title, toHtml)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 
 
-type BudgetDirection
-    = Income
-    | Expense
-
-
-budgetDirectionToString : BudgetDirection -> String
-budgetDirectionToString budgetDirection =
-    case budgetDirection of
-        Income ->
-            "Income"
-
-        Expense ->
-            "Expense"
-
-
-type alias BudgetCategory =
+type alias BudgetItem =
     { name : String
     , amount : Float
-    , direction : BudgetDirection
     }
 
 
-budgetCategoryToTuple : BudgetCategory -> ( Float, String )
-budgetCategoryToTuple budgetCategory =
-    ( budgetCategory.amount, budgetCategory.name )
+budgetItemToTuple : BudgetItem -> ( Float, String )
+budgetItemToTuple budgetItem =
+    ( budgetItem.amount, budgetItem.name )
 
 
 type alias Model =
-    { data : List BudgetCategory
+    { incomeItems : Array BudgetItem
+    , expenseItems : Array BudgetItem
     }
 
 
 initialModel : Model
 initialModel =
-    { data =
-        [ { name = "Mortgage", amount = 2000.0, direction = Expense }
-        , { name = "Groceries", amount = 500.0, direction = Expense }
-        , { name = "Utilities", amount = 250.0, direction = Expense }
-        , { name = "Paycheck", amount = 3500.0, direction = Income }
-        ]
+    { expenseItems =
+        Array.fromList
+            [ { name = "Mortgage", amount = 2000.0 }
+            , { name = "Groceries", amount = 500.0 }
+            , { name = "Utilities", amount = 250.0 }
+            ]
+    , incomeItems =
+        Array.fromList
+            [ { name = "Paycheck", amount = 3500.0 } ]
     }
 
 
 type Msg
-    = CategoryUpdated BudgetCategory
+    = ItemUpdated BudgetItem
+
+
+incomeTitle : String
+incomeTitle =
+    "Income Budget Items"
+
+
+expenseTitle : String
+expenseTitle =
+    "Expense Budget Items"
 
 
 view : Model -> Html Msg
 view model =
     div [ class "content" ]
         [ h1 [] [ text "Budget Explorer" ]
-        , hBar (List.map budgetCategoryToTuple model.data)
+        , hBar (List.map budgetItemToTuple (Array.toList model.incomeItems))
+            |> Chart.title incomeTitle
             |> toHtml
-        , htmlForDirection model.data Income
-        , htmlForDirection model.data Expense
+        , hBar (List.map budgetItemToTuple (Array.toList model.expenseItems))
+            |> Chart.title expenseTitle
+            |> toHtml
+        , htmlForDirection model.incomeItems incomeTitle
+        , htmlForDirection model.expenseItems expenseTitle
         ]
 
 
-htmlForDirection : List BudgetCategory -> BudgetDirection -> Html Msg
-htmlForDirection budgetCategories direction =
-    let
-        categoriesByDirection =
-            List.filter (\c -> c.direction == direction) budgetCategories
-
-        budgetDirectionStr =
-            budgetDirectionToString direction
-    in
-    div [ class budgetDirectionStr ] <|
-        [ h2 [] [ text <| budgetDirectionStr ++ " Categories" ] ]
-            ++ List.map htmlForCategory categoriesByDirection
+htmlForDirection : Array BudgetItem -> String -> Html Msg
+htmlForDirection budgetItems title =
+    div [] <|
+        [ h2 [] [ text title ] ]
+            ++ Array.toList (Array.map htmlForItem budgetItems)
 
 
-htmlForCategory : BudgetCategory -> Html Msg
-htmlForCategory budgetCategory =
+htmlForItem : BudgetItem -> Html Msg
+htmlForItem budgetItem =
     span []
-        [ input [ value budgetCategory.name ] []
-        , input [ value <| String.fromFloat budgetCategory.amount ] []
+        [ input [ value budgetItem.name ] []
+        , input [ value <| String.fromFloat budgetItem.amount ] []
         ]
 
 
