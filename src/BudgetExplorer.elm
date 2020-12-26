@@ -62,23 +62,35 @@ view model =
         , hBar (List.map budgetItemToTuple (Array.toList model.expenseItems))
             |> Chart.title expenseTitle
             |> toHtml
-        , htmlForDirection model.incomeItems incomeTitle
-        , htmlForDirection model.expenseItems expenseTitle
+        , htmlForBudgetItems model.incomeItems incomeTitle
+        , htmlForBudgetItems model.expenseItems expenseTitle
         ]
 
 
-htmlForDirection : Array BudgetItem -> String -> Html Msg
-htmlForDirection budgetItems title =
+htmlForBudgetItems : Array BudgetItem -> String -> Html Msg
+htmlForBudgetItems budgetItems title =
     div [] <|
         [ h2 [] [ text title ] ]
-            ++ Array.toList (Array.map htmlForItem budgetItems)
+            ++ List.map htmlForItem (Array.toIndexedList budgetItems)
 
 
-htmlForItem : BudgetItem -> Html Msg
-htmlForItem budgetItem =
-    span []
-        [ input [ value budgetItem.name ] []
-        , input [ value <| String.fromFloat budgetItem.amount ] []
+htmlForItem : ( Int, BudgetItem ) -> Html Msg
+htmlForItem ( index, budgetItem ) =
+    let
+        indexStr =
+            String.fromInt index
+
+        nameId =
+            "item-name-" ++ indexStr
+
+        amountId =
+            "item-amount-" ++ indexStr
+    in
+    div [ class "budget-item-entry" ]
+        [ label [ for nameId ] [ text "Name: " ]
+        , input [ value budgetItem.name, id nameId ] []
+        , label [ for amountId ] [ text "Amount: " ]
+        , input [ value <| String.fromFloat budgetItem.amount, id amountId ] []
         ]
 
 
