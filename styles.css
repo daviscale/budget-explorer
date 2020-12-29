@@ -1,14 +1,16 @@
- ody { font-family: Verdana; background-color: rgb(44, 44, 44); color: rgb(250, 250, 250); }
+ body { font-family: Verdana; background-color: rgb(44, 44, 44); color: rgb(250, 250, 250); }
 .content { margin: 40px auto; width: 960px; }
 
 h1 { color: #60b5cc; margin-bottom: 0; }
 h3 { float: left; margin: 0 }
 label { vertical-align: bottom; }
 button {
-  float: right; background-color: #60b5cc; border: 0; color: rgb(44, 44, 44);
-  font-size: 24px;
+  float: left; background-color: #60b5cc; border: 0; color: rgb(44, 44, 44);
+  font-size: 12px;
   cursor: pointer;
-  padding: 10px 30px;
+  padding: 5px;
+  margin: 10px;
+  display: block;
 }
 
 button:hover {
@@ -22,10 +24,14 @@ button:hover {
   clear: both;
 }
 
-.budget-item-entry {
-  display: block
+.budget-item-container {
+  display: block;
+  margin-bottom: 50px;
 }
 
+.budget-item-entry {
+  display: block;
+}
 
 
 
