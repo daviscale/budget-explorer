@@ -75,16 +75,26 @@ view model =
         ]
 
 
+buttonName : BudgetCategory -> String
+buttonName budgetCategory =
+    case budgetCategory of
+        Expense ->
+            "Add Expense"
+
+        Income ->
+            "Add Income"
+
+
 htmlForBudgetItems : BudgetCategory -> Array BudgetItem -> String -> Html Msg
 htmlForBudgetItems budgetCategory budgetItems title =
-    div [] <|
+    div [ class "budget-item-container" ] <|
         [ h2 [] [ text title ] ]
             ++ List.map (htmlForItem budgetCategory) (Array.toIndexedList budgetItems)
             ++ [ button
                     [ type_ "button"
                     , onClick (NewItem budgetCategory)
                     ]
-                    []
+                    [ text (buttonName budgetCategory) ]
                ]
 
 
