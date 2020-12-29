@@ -1,3 +1,2 @@
 - use proper error handling when a non-number is entered for an amount
 - add totals for income, expense, and cash left over
-- add ADD buttons for both expenses and income
