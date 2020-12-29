@@ -5,7 +5,7 @@ import Browser
 import Chart exposing (hBar, title, toHtml)
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onInput)
+import Html.Events exposing (onClick, onInput)
 
 
 type alias BudgetItem =
@@ -47,6 +47,7 @@ type BudgetCategory
 type Msg
     = NameChanged BudgetCategory String Int
     | AmountChanged BudgetCategory Float Int
+    | NewItem BudgetCategory
 
 
 incomeTitle : String
@@ -79,6 +80,12 @@ htmlForBudgetItems budgetCategory budgetItems title =
     div [] <|
         [ h2 [] [ text title ] ]
             ++ List.map (htmlForItem budgetCategory) (Array.toIndexedList budgetItems)
+            ++ [ button
+                    [ type_ "button"
+                    , onClick (NewItem budgetCategory)
+                    ]
+                    []
+               ]
 
 
 htmlForItem : BudgetCategory -> ( Int, BudgetItem ) -> Html Msg
@@ -179,6 +186,12 @@ update msg model =
 
                 Nothing ->
                     ( model, Cmd.none )
+
+        NewItem Income ->
+            ( { model | incomeItems = Array.push { name = "", amount = 0.0 } model.incomeItems }, Cmd.none )
+
+        NewItem Expense ->
+            ( { model | expenseItems = Array.push { name = "", amount = 0.0 } model.expenseItems }, Cmd.none )
 
 
 main : Program () Model Msg
