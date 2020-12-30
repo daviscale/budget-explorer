@@ -110,7 +110,7 @@ htmlForItem budgetCategory ( index, budgetItem ) =
         amountId =
             "item-amount-" ++ indexStr
     in
-    div [ class "budget-item-entry" ]
+    div [ class "budget-item-row" ]
         [ label [ for nameId ] [ text "Name: " ]
         , input
             [ value budgetItem.name
