@@ -1,2 +1,3 @@
 - use proper error handling when a non-number is entered for an amount
 - add totals for income, expense, and cash left over
+- add REMOVE button
