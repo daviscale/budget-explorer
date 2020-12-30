@@ -70,8 +70,38 @@ view model =
         , hBar (List.map budgetItemToTuple (Array.toList model.expenseItems))
             |> Chart.title expenseTitle
             |> toHtml
+        , htmlForSummary model
         , htmlForBudgetItems Income model.incomeItems incomeTitle
         , htmlForBudgetItems Expense model.expenseItems expenseTitle
+        ]
+
+
+htmlForSummary : Model -> Html Msg
+htmlForSummary model =
+    let
+        incomeTotal =
+            Array.foldl (+) 0.0 (Array.map (\i -> i.amount) model.incomeItems)
+
+        incomeTotalStr =
+            String.fromFloat incomeTotal
+
+        expenseTotal =
+            Array.foldl (+) 0.0 (Array.map (\i -> i.amount) model.expenseItems)
+
+        expenseTotalStr =
+            String.fromFloat expenseTotal
+
+        cashLeftOverStr =
+            String.fromFloat (incomeTotal - expenseTotal)
+    in
+    div [ id "summary-section" ]
+        [ h2 [] [ text "Summary" ]
+        , ul
+            []
+            [ li [] [ text <| "Income Total: " ++ incomeTotalStr ]
+            , li [] [ text <| "Expense Total: " ++ expenseTotalStr ]
+            , li [] [ text <| "Cash Left Over: " ++ cashLeftOverStr ]
+            ]
         ]
 
 
