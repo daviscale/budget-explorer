@@ -5,12 +5,10 @@ h1 { color: #60b5cc; margin-bottom: 0; }
 h3 { float: left; margin: 0 }
 label { vertical-align: bottom; }
 button {
-  float: left; background-color: #60b5cc; border: 0; color: rgb(44, 44, 44);
+  background-color: #60b5cc; border: 0; color: rgb(44, 44, 44);
   font-size: 12px;
   cursor: pointer;
   padding: 5px;
-  margin: 10px;
-  display: block;
 }
 
 button:hover {
@@ -31,6 +29,10 @@ button:hover {
 
 .budget-item-row {
   display: block;
+  margin: 10px;
 }
 
-
+.budget-item-field {
+  display: inline;
+  margin: 5px;
+}

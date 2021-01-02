@@ -1,2 +1,1 @@
 - use proper error handling when a non-number is entered for an amount
-- add REMOVE button

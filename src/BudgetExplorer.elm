@@ -1,6 +1,7 @@
 module BudgetExplorer exposing (main)
 
 import Array exposing (Array)
+import Array.Extra as Array
 import Browser
 import Chart exposing (hBar, title, toHtml)
 import Html exposing (..)
@@ -48,6 +49,7 @@ type Msg
     = NameChanged BudgetCategory String Int
     | AmountChanged BudgetCategory Float Int
     | NewItem BudgetCategory
+    | RemoveItem BudgetCategory Int
 
 
 incomeTitle : String
@@ -109,10 +111,10 @@ buttonName : BudgetCategory -> String
 buttonName budgetCategory =
     case budgetCategory of
         Expense ->
-            "Add Expense"
+            "Expense Item"
 
         Income ->
-            "Add Income"
+            "Income Item"
 
 
 htmlForBudgetItems : BudgetCategory -> Array BudgetItem -> String -> Html Msg
@@ -124,7 +126,7 @@ htmlForBudgetItems budgetCategory budgetItems title =
                     [ type_ "button"
                     , onClick (NewItem budgetCategory)
                     ]
-                    [ text (buttonName budgetCategory) ]
+                    [ text ("Add " ++ buttonName budgetCategory) ]
                ]
 
 
@@ -139,22 +141,36 @@ htmlForItem budgetCategory ( index, budgetItem ) =
 
         amountId =
             "item-amount-" ++ indexStr
+
+        buttonId =
+            "item-button-" ++ indexStr
     in
     div [ class "budget-item-row" ]
-        [ label [ for nameId ] [ text "Name: " ]
-        , input
-            [ value budgetItem.name
-            , id nameId
-            , onInput (\newName -> NameChanged budgetCategory newName index)
+        [ span [ class "budget-item-field" ]
+            [ label [ for nameId ] [ text "Name: " ]
+            , input
+                [ value budgetItem.name
+                , id nameId
+                , onInput (\newName -> NameChanged budgetCategory newName index)
+                ]
+                []
             ]
-            []
-        , label [ for amountId ] [ text "Amount: " ]
-        , input
-            [ value <| String.fromFloat budgetItem.amount
-            , id amountId
-            , onInput (\newAmount -> AmountChanged budgetCategory (Maybe.withDefault 0.0 (String.toFloat newAmount)) index)
+        , span [ class "budget-item-field" ]
+            [ label [ for amountId ] [ text "Amount: " ]
+            , input
+                [ value <| String.fromFloat budgetItem.amount
+                , id amountId
+                , onInput (\newAmount -> AmountChanged budgetCategory (Maybe.withDefault 0.0 (String.toFloat newAmount)) index)
+                ]
+                []
             ]
-            []
+        , span [ class "budget-item-field" ]
+            [ button
+                [ type_ "button"
+                , onClick (RemoveItem budgetCategory index)
+                ]
+                [ text ("Remove " ++ buttonName budgetCategory) ]
+            ]
         ]
 
 
@@ -232,6 +248,12 @@ update msg model =
 
         NewItem Expense ->
             ( { model | expenseItems = Array.push { name = "", amount = 0.0 } model.expenseItems }, Cmd.none )
+
+        RemoveItem Income index ->
+            ( { model | incomeItems = Array.removeAt index model.incomeItems }, Cmd.none )
+
+        RemoveItem Expense index ->
+            ( { model | expenseItems = Array.removeAt index model.expenseItems }, Cmd.none )
 
 
 main : Program () Model Msg
