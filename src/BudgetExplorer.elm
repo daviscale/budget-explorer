@@ -10,7 +10,8 @@ import Html.Events exposing (onClick, onInput)
 
 
 type alias BudgetItem =
-    { name : String
+    { id : Int
+    , name : String
     , amount : Float
     }
 
@@ -21,22 +22,20 @@ budgetItemToTuple budgetItem =
 
 
 type alias Model =
-    { incomeItems : Array BudgetItem
-    , expenseItems : Array BudgetItem
+    { incomeItems : List BudgetItem
+    , expenseItems : List BudgetItem
     }
 
 
 initialModel : Model
 initialModel =
     { expenseItems =
-        Array.fromList
-            [ { name = "Mortgage", amount = 2000.0 }
-            , { name = "Groceries", amount = 500.0 }
-            , { name = "Utilities", amount = 250.0 }
-            ]
+        [ { id = 1, name = "Mortgage", amount = 2000.0 }
+        , { id = 2, name = "Groceries", amount = 500.0 }
+        , { id = 3, name = "Utilities", amount = 250.0 }
+        ]
     , incomeItems =
-        Array.fromList
-            [ { name = "Paycheck", amount = 3500.0 } ]
+        [ { id = 1, name = "Paycheck", amount = 3500.0 } ]
     }
 
 
@@ -46,10 +45,10 @@ type BudgetCategory
 
 
 type Msg
-    = NameChanged BudgetCategory String Int
-    | AmountChanged BudgetCategory Float Int
+    = NameChanged BudgetCategory String BudgetItem
+    | AmountChanged BudgetCategory Float BudgetItem
     | NewItem BudgetCategory
-    | RemoveItem BudgetCategory Int
+    | RemoveItem BudgetCategory BudgetItem
 
 
 incomeTitle : String
@@ -66,10 +65,10 @@ view : Model -> Html Msg
 view model =
     div [ class "content" ]
         [ h1 [] [ text "Budget Explorer" ]
-        , hBar (List.map budgetItemToTuple (Array.toList model.incomeItems))
+        , hBar (List.map budgetItemToTuple model.incomeItems)
             |> Chart.title incomeTitle
             |> toHtml
-        , hBar (List.map budgetItemToTuple (Array.toList model.expenseItems))
+        , hBar (List.map budgetItemToTuple model.expenseItems)
             |> Chart.title expenseTitle
             |> toHtml
         , htmlForSummary model
@@ -82,13 +81,13 @@ htmlForSummary : Model -> Html Msg
 htmlForSummary model =
     let
         incomeTotal =
-            Array.foldl (+) 0.0 (Array.map (\i -> i.amount) model.incomeItems)
+            List.foldl (+) 0.0 (List.map (\i -> i.amount) model.incomeItems)
 
         incomeTotalStr =
             String.fromFloat incomeTotal
 
         expenseTotal =
-            Array.foldl (+) 0.0 (Array.map (\i -> i.amount) model.expenseItems)
+            List.foldl (+) 0.0 (List.map (\i -> i.amount) model.expenseItems)
 
         expenseTotalStr =
             String.fromFloat expenseTotal
@@ -117,11 +116,11 @@ buttonName budgetCategory =
             "Income Item"
 
 
-htmlForBudgetItems : BudgetCategory -> Array BudgetItem -> String -> Html Msg
+htmlForBudgetItems : BudgetCategory -> List BudgetItem -> String -> Html Msg
 htmlForBudgetItems budgetCategory budgetItems title =
     div [ class "budget-item-container" ] <|
         [ h2 [] [ text title ] ]
-            ++ List.map (htmlForItem budgetCategory) (Array.toIndexedList budgetItems)
+            ++ List.map (htmlForItem budgetCategory) budgetItems
             ++ [ button
                     [ type_ "button"
                     , onClick (NewItem budgetCategory)
@@ -130,20 +129,20 @@ htmlForBudgetItems budgetCategory budgetItems title =
                ]
 
 
-htmlForItem : BudgetCategory -> ( Int, BudgetItem ) -> Html Msg
-htmlForItem budgetCategory ( index, budgetItem ) =
+htmlForItem : BudgetCategory -> BudgetItem -> Html Msg
+htmlForItem budgetCategory budgetItem =
     let
-        indexStr =
-            String.fromInt index
+        idStr =
+            String.fromInt budgetItem.id
 
         nameId =
-            "item-name-" ++ indexStr
+            "item-name-" ++ idStr
 
         amountId =
-            "item-amount-" ++ indexStr
+            "item-amount-" ++ idStr
 
         buttonId =
-            "item-button-" ++ indexStr
+            "item-button-" ++ idStr
     in
     div [ class "budget-item-row" ]
         [ span [ class "budget-item-field" ]
@@ -151,7 +150,7 @@ htmlForItem budgetCategory ( index, budgetItem ) =
             , input
                 [ value budgetItem.name
                 , id nameId
-                , onInput (\newName -> NameChanged budgetCategory newName index)
+                , onInput (\newName -> NameChanged budgetCategory newName budgetItem)
                 ]
                 []
             ]
@@ -160,50 +159,59 @@ htmlForItem budgetCategory ( index, budgetItem ) =
             , input
                 [ value <| String.fromFloat budgetItem.amount
                 , id amountId
-                , onInput (\newAmount -> AmountChanged budgetCategory (Maybe.withDefault 0.0 (String.toFloat newAmount)) index)
+                , onInput (\newAmount -> AmountChanged budgetCategory (Maybe.withDefault 0.0 (String.toFloat newAmount)) budgetItem)
                 ]
                 []
             ]
         , span [ class "budget-item-field" ]
             [ button
                 [ type_ "button"
-                , onClick (RemoveItem budgetCategory index)
+                , onClick (RemoveItem budgetCategory budgetItem)
                 ]
                 [ text ("Remove " ++ buttonName budgetCategory) ]
             ]
         ]
 
 
-updateModelArray : Model -> BudgetItem -> BudgetCategory -> Int -> Model
-updateModelArray model budgetItem budgetCategory index =
+replaceBudgetItem : BudgetItem -> BudgetItem -> BudgetItem
+replaceBudgetItem budgetItemFromList budgetItemToReplace =
+    if budgetItemFromList.id == budgetItemToReplace.id then
+        budgetItemToReplace
+
+    else
+        budgetItemFromList
+
+
+updateModelArray : Model -> BudgetItem -> BudgetCategory -> Model
+updateModelArray model budgetItem budgetCategory =
     case budgetCategory of
         Income ->
-            { model | incomeItems = Array.set index budgetItem model.incomeItems }
+            { model | incomeItems = List.map (\item -> replaceBudgetItem item budgetItem) model.incomeItems }
 
         Expense ->
-            { model | expenseItems = Array.set index budgetItem model.expenseItems }
+            { model | expenseItems = List.map (\item -> replaceBudgetItem item budgetItem) model.expenseItems }
 
 
-updateName : Model -> BudgetItem -> BudgetCategory -> String -> Int -> ( Model, Cmd Msg )
-updateName model budgetItem budgetCategory name index =
+updateName : Model -> BudgetItem -> BudgetCategory -> String -> ( Model, Cmd Msg )
+updateName model budgetItem budgetCategory name =
     let
         newItem =
             { budgetItem | name = name }
 
         newModel =
-            updateModelArray model newItem budgetCategory index
+            updateModelArray model newItem budgetCategory
     in
     ( newModel, Cmd.none )
 
 
-updateAmount : Model -> BudgetItem -> BudgetCategory -> Float -> Int -> ( Model, Cmd Msg )
-updateAmount model budgetItem budgetCategory amount index =
+updateAmount : Model -> BudgetItem -> BudgetCategory -> Float -> ( Model, Cmd Msg )
+updateAmount model budgetItem budgetCategory amount =
     let
         newItem =
             { budgetItem | amount = amount }
 
         newModel =
-            updateModelArray model newItem budgetCategory index
+            updateModelArray model newItem budgetCategory
     in
     ( newModel, Cmd.none )
 
@@ -211,49 +219,29 @@ updateAmount model budgetItem budgetCategory amount index =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        NameChanged Income name index ->
-            case Array.get index model.incomeItems of
-                Just incomeItem ->
-                    updateName model incomeItem Income name index
+        NameChanged budgetCategory name budgetItem ->
+            updateName model budgetItem budgetCategory name
 
-                Nothing ->
-                    ( model, Cmd.none )
-
-        NameChanged Expense name index ->
-            case Array.get index model.expenseItems of
-                Just expenseItem ->
-                    updateName model expenseItem Expense name index
-
-                Nothing ->
-                    ( model, Cmd.none )
-
-        AmountChanged Income amount index ->
-            case Array.get index model.incomeItems of
-                Just incomeItem ->
-                    updateAmount model incomeItem Income amount index
-
-                Nothing ->
-                    ( model, Cmd.none )
-
-        AmountChanged Expense amount index ->
-            case Array.get index model.expenseItems of
-                Just expenseItem ->
-                    updateAmount model expenseItem Expense amount index
-
-                Nothing ->
-                    ( model, Cmd.none )
+        AmountChanged budgetCategory amount budgetItem ->
+            updateAmount model budgetItem budgetCategory amount
 
         NewItem Income ->
-            ( { model | incomeItems = Array.push { name = "", amount = 0.0 } model.incomeItems }, Cmd.none )
+            ( { model | incomeItems = List.append model.incomeItems [ { id = List.length model.incomeItems + 1, name = "", amount = 0.0 } ] }, Cmd.none )
 
         NewItem Expense ->
-            ( { model | expenseItems = Array.push { name = "", amount = 0.0 } model.expenseItems }, Cmd.none )
+            ( { model | expenseItems = List.append model.expenseItems [ { id = List.length model.expenseItems + 1, name = "", amount = 0.0 } ] }, Cmd.none )
 
-        RemoveItem Income index ->
-            ( { model | incomeItems = Array.removeAt index model.incomeItems }, Cmd.none )
+        RemoveItem Income budgetItem ->
+            ( { model | incomeItems = removeBudgetItemAndResetIds model.incomeItems budgetItem }, Cmd.none )
 
-        RemoveItem Expense index ->
-            ( { model | expenseItems = Array.removeAt index model.expenseItems }, Cmd.none )
+        RemoveItem Expense budgetItem ->
+            ( { model | expenseItems = removeBudgetItemAndResetIds model.expenseItems budgetItem }, Cmd.none )
+
+
+removeBudgetItemAndResetIds : List BudgetItem -> BudgetItem -> List BudgetItem
+removeBudgetItemAndResetIds budgetItems budgetItem =
+    List.filter (\item -> budgetItem.id /= item.id) budgetItems
+        |> List.indexedMap (\index item -> { item | id = index + 1 })
 
 
 main : Program () Model Msg
