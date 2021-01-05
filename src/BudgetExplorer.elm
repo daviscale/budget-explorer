@@ -1,7 +1,5 @@
 module BudgetExplorer exposing (main)
 
-import Array exposing (Array)
-import Array.Extra as Array
 import Browser
 import Chart exposing (hBar, title, toHtml)
 import Html exposing (..)
