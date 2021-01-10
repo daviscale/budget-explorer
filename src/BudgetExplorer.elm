@@ -57,8 +57,8 @@ initialModel =
 
 
 type Msg
-    = NameChanged String BudgetItem
-    | AmountChanged Float BudgetItem
+    = NameChanged BudgetItem String
+    | AmountChanged BudgetItem Float
     | NewItem BudgetCategory
     | RemoveItem BudgetItem
 
@@ -93,13 +93,19 @@ htmlForSummary : Model -> Html Msg
 htmlForSummary model =
     let
         incomeTotal =
-            List.foldl (+) 0.0 (List.map (\i -> i.amount) (incomeItems model.budgetItems))
+            model.budgetItems
+                |> incomeItems
+                |> List.map .amount
+                |> List.sum
 
         incomeTotalStr =
             String.fromFloat incomeTotal
 
         expenseTotal =
-            List.foldl (+) 0.0 (List.map (\i -> i.amount) (expenseItems model.budgetItems))
+            model.budgetItems
+                |> expenseItems
+                |> List.map .amount
+                |> List.sum
 
         expenseTotalStr =
             String.fromFloat expenseTotal
@@ -162,7 +168,7 @@ htmlForItem budgetItem =
             , input
                 [ value budgetItem.name
                 , id nameId
-                , onInput (\newName -> NameChanged newName budgetItem)
+                , onInput (NameChanged budgetItem)
                 ]
                 []
             ]
@@ -171,7 +177,7 @@ htmlForItem budgetItem =
             , input
                 [ value <| String.fromFloat budgetItem.amount
                 , id amountId
-                , onInput (\newAmount -> AmountChanged (Maybe.withDefault 0.0 (String.toFloat newAmount)) budgetItem)
+                , onInput (\newAmount -> AmountChanged budgetItem (Maybe.withDefault 0.0 (String.toFloat newAmount)))
                 ]
                 []
             ]
@@ -226,10 +232,10 @@ updateAmount model budgetItem amount =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        NameChanged name budgetItem ->
+        NameChanged budgetItem name ->
             updateName model budgetItem name
 
-        AmountChanged amount budgetItem ->
+        AmountChanged budgetItem amount ->
             updateAmount model budgetItem amount
 
         NewItem budgetCategory ->
